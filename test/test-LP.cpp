@@ -1,5 +1,5 @@
 #include <iostream>
-#include "LPModel.h"
+#include "../LP/LPModel.h"\
 
 int main() {
     LPModel model;

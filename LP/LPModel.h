@@ -25,6 +25,10 @@ private:
     std::vector<std::vector<Rational>> finalTableau;
     Rational optimalValue;
     std::vector<Rational> optimalSolution;
+    
+    // 补丁 1：定义一个计数器，给底层自动生成的松弛变量起名字
+    int hiddenVarCounter = 0; 
+    
     int allocateReg(const std::string& name=""){
         int regId=regToVar.size();
         regToVar.push_back(name);
@@ -81,12 +85,13 @@ public:
         for(int i=0;i<m;++i){
             auto& cons=constraintsIR[i];
             if(cons.op=="<="){
-                int sReg=allocateReg();
+                // 补丁 2：给原本没名字的松弛变量强行赋名，让它可以在下一轮当做普通变量被约束
+                int sReg=allocateReg("_S" + std::to_string(++hiddenVarCounter));
                 cons.terms[sReg]=Rational(1);
                 basis[i]=sReg;
             }else if(cons.op==">="){
-                int eReg=allocateReg();
-                int aReg=allocateReg();
+                int eReg=allocateReg("_E" + std::to_string(++hiddenVarCounter));
+                int aReg=allocateReg("_A" + std::to_string(++hiddenVarCounter));
                 cons.terms[eReg]=Rational(-1);
                 cons.terms[aReg]=Rational(1);
                 basis[i]=aReg;
@@ -126,6 +131,34 @@ public:
             basis=phase1.basis;
             for(int j=0;j<=totalRegs;++j){
                 mat[m][j]=Rational(0);
+            }
+            for(int i=0;i<m;++i){
+                if(std::find(artificialRegs.begin(),artificialRegs.end(),basis[i])!=artificialRegs.end()){
+                    int pivotCol=-1;
+                    for(int j=0;j<totalRegs;++j){
+                        if(std::find(artificialRegs.begin(),artificialRegs.end(),j)==artificialRegs.end()&&mat[i][j]!=Rational(0)){
+                            pivotCol=j;
+                            break;
+                        }
+                    }
+                    if(pivotCol!=-1){
+                        Rational p=mat[i][pivotCol];
+                        for(int j=0;j<=totalRegs;++j){
+                            mat[i][j]/=p;
+                        }
+                        for(int r=0;r<=m;++r){
+                            if(r!=i){
+                                Rational factor=mat[r][pivotCol];
+                                if(factor!=Rational(0)){
+                                    for(int j=0;j<=totalRegs;++j){
+                                        mat[r][j]-=factor*mat[i][j];
+                                    }
+                                }
+                            }
+                        }
+                        basis[i]=pivotCol;
+                    }
+                }
             }
             for(int aReg:artificialRegs){
                 for(int i=0;i<=m;++i){
@@ -168,5 +201,7 @@ public:
         }
         return result;
     }
+    const std::vector<std::string>& getRegToVar() const { return regToVar; }
+    const std::vector<std::vector<Rational>>& getFinalTableau() const { return finalTableau; }
 };
 #endif // LPMODEL_H
