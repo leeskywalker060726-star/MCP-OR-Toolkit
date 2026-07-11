@@ -9,6 +9,7 @@
 #include"ILP/ILPGomoryCut.h"
 #include"Graph/Hungarian.h"
 #include"Graph/KMAlgorithm.h"
+#include"Bandit/BanditSolver.h"
 
 namespace py=pybind11;
 
@@ -115,6 +116,36 @@ py::dict solve_dispatcher(const std::string& algo_type, py::dict payload){
             py::dict matches;
             for(const auto& pair:km.getMatches()) matches[pair.first.c_str()]=pair.second;
             result["matches"]=matches;
+        }
+        else if(algo_type=="EPSILON_GREEDY"||algo_type=="UCB"||algo_type=="THOMPSON_SAMPLING"){
+            std::map<std::string,ArmState> arms;
+            if(payload.contains("arms")){
+                py::dict pyArms=payload["arms"].cast<py::dict>();
+                for(auto item:pyArms){
+                    std::string name=item.first.cast<std::string>();
+                    py::dict stateDict=item.second.cast<py::dict>();
+                    arms[name]={stateDict["pulls"].cast<int>(),stateDict["total_reward"].cast<double>()};
+                }
+            }
+            std::map<std::string,double> hparams;
+            if(payload.contains("hyperparameters")){
+                py::dict pyHParams=payload["hyperparameters"].cast<py::dict>();
+                for(auto item:pyHParams){
+                    hparams[item.first.cast<std::string>()]=item.second.cast<double>();
+                }
+            }
+            BanditSolver solver;
+            BanditResult bRes=solver.solve(algo_type,arms,hparams);
+            result["status"]=bRes.status;
+            if(bRes.status=="SUCCESS"){
+                result["chosen_arm"]=bRes.chosen_arm;
+                py::dict scores;
+                for(const auto& pair:bRes.scores) scores[pair.first.c_str()]=pair.second;
+                result["scores"]=scores;
+                result["message"]=bRes.message;
+            }else{
+                result["message"]=bRes.message;
+            }
         }
         else{
             throw std::invalid_argument("ExactOR: Unsupported algorithm type: "+algo_type);

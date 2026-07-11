@@ -1,8 +1,8 @@
 # ExactOR Agent Automated Test Error Report
 
-**Generated At**: 2026-07-10 18:15:00
+**Generated At**: 2026-07-11 21:33:57
 **Model**: deepseek-reasoner
-**Total Cases**: 5 | **Passed**: 5 | **Failed**: 0
+**Total Cases**: 8 | **Passed**: 8 | **Failed**: 0
 
 ---
 

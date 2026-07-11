@@ -3,3 +3,6 @@
 {"id": "TEST_03_PURE_ILP", "expected_algo": "solve_pure_integer_programming", "prompt": "我需要采购一批大客车和小客车。大客车每辆50万，载客40人；小客车每辆30万，载客20人。我总共有预算200万，要求总载客量至少达到140人。所有客车必须是严格的整数。求满足载客量的前提下，最小化购车成本的方案。"}
 {"id": "TEST_04_HUNGARIAN", "expected_algo": "solve_unweighted_bipartite_matching", "prompt": "学校有三个志愿者（张三、李四、王五）和三个岗位（门卫、导游、后勤）。张三能胜任门卫和导游；李四能胜任导游；王五能胜任门卫和后勤。不考虑能力高低，只希望能安排最多的人上岗。请给出最佳匹配方案。"}
 {"id": "TEST_05_KM", "expected_algo": "solve_maximum_weight_matching", "prompt": "我现在有三个外卖员：张三、李四、王五。还有三个外卖订单：单1、单2、单3。张三送单1利润为5，送单2利润为4，送单3利润为2。李四送单1利润为5，送单2利润为3，送单3利润为2。王五送单1利润为2，送单2利润为2，送单3利润为4。请帮我设计一个派单方案，确保总利润最高。"}
+{"id": "TEST_06_BANDIT_GREEDY", "expected_algo": "solve_epsilon_greedy_bandit", "prompt": "我正在做营销邮件的A/B测试。方案A发送了100次，获得12次点击（总收益12）。方案B发送了20次，获得3次点击。我希望使用固定的探索概率（epsilon为0.1）进行简单的基线探索（simple baseline exploration），请帮我决定下一次发哪个方案，请设置随机种子 seed 为 42。"}
+{"id": "TEST_07_BANDIT_UCB", "expected_algo": "solve_ucb_bandit", "prompt": "我有三个广告素材。广告1展现50次，点击5次；广告2展现10次，点击2次；广告3展现0次，点击0次。为了决定下一次展现哪个广告，我需要使用严谨的、基于乐观主义的探索策略，能在数学上保证最小化遗憾（minimize regret）。请设置随机种子 seed 为 42。"}
+{"id": "TEST_08_BANDIT_THOMPSON", "expected_algo": "solve_thompson_sampling_bandit", "prompt": "我们在测试三种UI布局。布局X展示200次，转化50次；布局Y展示50次，转化15次；布局Z展示10次，转化1次。请使用基于贝叶斯Beta分布（Bayesian Beta distribution）的策略，以在真实场景中获得最鲁棒的探索与利用平衡，告诉我接下来该展示哪个布局。请设置随机种子 seed 为 42。"}
