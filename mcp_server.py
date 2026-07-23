@@ -2,16 +2,38 @@ import json
 import os
 import sys
 import asyncio
+import shutil
+
+_dll_directory_handles = []
+
 if os.name == 'nt' and sys.version_info >= (3, 8):
-    mingw_bin_path = r"E:\mingw\mingw64\bin"
-    if os.path.exists(mingw_bin_path):
-        os.add_dll_directory(mingw_bin_path)
+    mingw_bin_path = os.getenv("MINGW_BIN_PATH", r"C:\Users\eurek\Desktop\mingw64\bin")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    python_dir = os.path.dirname(sys.executable)
+    dll_search_paths = [current_dir, python_dir, mingw_bin_path]
+
+    git_executable = shutil.which("git")
+    if git_executable:
+        git_root = os.path.dirname(os.path.dirname(git_executable))
+        dll_search_paths.append(os.path.join(git_root, "mingw64", "bin"))
+
+    dll_search_paths.extend(os.environ.get("PATH", "").split(os.pathsep))
+
+    seen_paths = set()
+    for dll_path in dll_search_paths:
+        if not dll_path:
+            continue
+        normalized_path = os.path.abspath(dll_path)
+        if normalized_path in seen_paths or not os.path.exists(normalized_path):
+            continue
+        seen_paths.add(normalized_path)
+        _dll_directory_handles.append(os.add_dll_directory(normalized_path))
 
 try:
     import exactor
 except ImportError as e:
     print(f"\n[致命错误] 加载 exactor 失败: {e}", file=sys.stderr)
-    print("如果是 'DLL load failed'，请确认上述 mingw_bin_path 是否正确，或者将该路径添加到系统的 PATH 环境变量中。", file=sys.stderr)
+    print("如果是 'DLL load failed'，请确认 MINGW_BIN_PATH 或默认 MinGW bin 路径是否正确，或者将该路径添加到系统的 PATH 环境变量中。", file=sys.stderr)
     sys.exit(1)
 
 
